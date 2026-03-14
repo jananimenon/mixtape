@@ -2,79 +2,178 @@
 <html>
 <head>
 
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Mixtape</title>
+
+<script src="https://cdn.jsdelivr.net/npm/jsmediatags/dist/jsmediatags.min.js"></script>
 
 <style>
 
 body{
 margin:0;
+font-family:system-ui;
 background:#011638;
 color:#eef0f2;
-font-family:system-ui;
 display:flex;
 justify-content:center;
 align-items:center;
-min-height:100vh;
-padding:40px 20px;
+height:100vh;
+overflow:hidden;
 }
+
+/* STARS */
+
+.stars{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+z-index:0;
+}
+
+.star{
+position:absolute;
+width:2px;
+height:2px;
+background:#eef0f2;
+border-radius:50%;
+opacity:.7;
+animation:twinkle 3s infinite;
+}
+
+@keyframes twinkle{
+0%{opacity:.2}
+50%{opacity:1}
+100%{opacity:.2}
+}
+
+/* PLAYER */
 
 .player{
+
+width:92%;
 max-width:420px;
-width:100%;
+
 background:#141414;
-padding:20px;
-border-radius:18px;
+
+border-radius:20px;
+
+padding:24px;
+
+box-shadow:0 0 40px rgba(0,0,0,.6);
+
+position:relative;
+
+z-index:2;
+
+display:flex;
+
+flex-direction:column;
+
+gap:18px;
+
 }
 
-.artwork{
+/* ARTWORK */
+
+.art{
+
 width:100%;
-aspect-ratio:1/1;
-background:#011638;
+
+aspect-ratio:1;
+
+background:#000;
+
+border-radius:12px;
+
 background-size:cover;
+
 background-position:center;
-border-radius:10px;
-margin-bottom:10px;
+
+box-shadow:0 0 25px rgba(13,33,161,.5);
+
 }
+
+/* SONG INFO */
 
 .title{
-text-align:center;
+
 font-size:18px;
+
+font-weight:600;
+
 }
 
 .artist{
-text-align:center;
+
+font-size:14px;
+
 opacity:.7;
-margin-bottom:10px;
+
 }
 
-audio{
-width:100%;
-margin-bottom:10px;
-}
+/* CONTROLS */
 
-.songlist{
-max-height:200px;
-overflow-y:auto;
-}
+.controls{
 
-.song{
-padding:10px;
-border-bottom:1px solid rgba(255,255,255,.08);
-cursor:pointer;
-}
+display:flex;
 
-.song:hover{
-background:#011638;
+justify-content:center;
+
+gap:16px;
+
 }
 
 button{
-width:100%;
-padding:10px;
+
 background:#0d21a1;
-color:#eef0f2;
+
 border:none;
+
+padding:10px 16px;
+
 border-radius:10px;
-margin-bottom:10px;
+
+color:#eef0f2;
+
+font-size:14px;
+
+cursor:pointer;
+
+}
+
+/* PLAYLIST */
+
+.playlist{
+
+max-height:220px;
+
+overflow-y:auto;
+
+border-top:1px solid rgba(255,255,255,.1);
+
+padding-top:10px;
+
+}
+
+.song{
+
+padding:10px;
+
+border-radius:8px;
+
+cursor:pointer;
+
+font-size:14px;
+
+}
+
+.song:hover{
+
+background:#0d21a1;
+
 }
 
 </style>
@@ -83,144 +182,184 @@ margin-bottom:10px;
 
 <body>
 
+<div class="stars" id="stars"></div>
+
 <div class="player">
 
-<div class="artwork" id="artwork"></div>
+<div class="art" id="artwork"></div>
 
-<div class="title" id="title">Select a song</div>
+<div>
+
+<div class="title" id="title">Mixtape</div>
+
 <div class="artist" id="artist"></div>
-
-<audio id="audio" controls></audio>
-
-<button onclick="shuffleSong()">Shuffle</button>
-
-<div class="songlist" id="songlist"></div>
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/jsmediatags/dist/jsmediatags.min.js"></script>
+<div class="controls">
+
+<button onclick="shuffleSong()">Shuffle</button>
+
+</div>
+
+<div class="playlist" id="songlist"></div>
+
+<audio id="audio"></audio>
+
+</div>
 
 <script>
 
-const songs = [
-    {url:"Begum Akhtar - Aye mohabat tere anjam pe rona aaya.mp3"},
-    {url:"Begum Akhtar - Mere Humnafas Mere Humnava.mp3"},
-    {url:"Begum Akhtar - Woh Jo Ham Mein Tum Mein.mp3"},
-    {url:"Begum Akhtar - Yeh Na Thi Humari Qismat.mp3"}
-];
+/* STAR FIELD */
 
-let currentIndex = 0;
+const starContainer=document.getElementById("stars")
 
-const audio = document.getElementById("audio");
-const artwork = document.getElementById("artwork");
-const title = document.getElementById("title");
-const artist = document.getElementById("artist");
-const list = document.getElementById("songlist");
+for(let i=0;i<120;i++){
 
-/* BUILD PLAYLIST USING METADATA */
+let star=document.createElement("div")
+
+star.className="star"
+
+star.style.left=Math.random()*100+"%"
+
+star.style.top=Math.random()*100+"%"
+
+star.style.animationDelay=Math.random()*3+"s"
+
+starContainer.appendChild(star)
+
+}
+
+/* SONG LIST */
+
+const songs=[
+
+{url:"Begum Akhtar - Yeh Na Thi Humari Qismat.mp3"},
+{url:"Begum Akhtar - Woh Jo Ham Mein Tum Mein.mp3"},
+{url:"Begum Akhtar - Mere Humnafas Mere Humnava.mp3"},
+{url:"Begum Akhtar - Aye mohabat tere anjam pe rona aaya.mp3"}
+
+]
+
+let currentIndex=0
+
+const audio=document.getElementById("audio")
+const artwork=document.getElementById("artwork")
+const title=document.getElementById("title")
+const artist=document.getElementById("artist")
+const list=document.getElementById("songlist")
+
+/* LOAD PLAYLIST WITH METADATA */
 
 songs.forEach((song,i)=>{
 
-    jsmediatags.read(song.url,{
-        onSuccess: function(tag){
+jsmediatags.read(song.url,{
 
-            const t = tag.tags;
+onSuccess:function(tag){
 
-            let songTitle = t.title || "Unknown Title";
-            let songArtist = t.artist || "";
+let t=tag.tags
 
-            let div = document.createElement("div");
-            div.className="song";
+let songTitle=t.title||("Track "+(i+1))
+let songArtist=t.artist||""
 
-            div.innerText = songTitle + " — " + songArtist;
+let div=document.createElement("div")
 
-            div.onclick = ()=> playSong(i);
+div.className="song"
 
-            list.appendChild(div);
+div.innerText=songTitle+" — "+songArtist
 
-        },
+div.onclick=()=>playSong(i)
 
-        onError: function(){
+list.appendChild(div)
 
-            let div=document.createElement("div");
+},
 
-            div.className="song";
+onError:function(){
 
-            div.innerText="Track "+(i+1);
+let div=document.createElement("div")
 
-            div.onclick=()=>playSong(i);
+div.className="song"
 
-            list.appendChild(div);
+div.innerText="Track "+(i+1)
 
-        }
+div.onclick=()=>playSong(i)
 
-    });
+list.appendChild(div)
 
-});
+}
 
+})
+
+})
 
 /* PLAY SONG */
 
 function playSong(i){
 
-    currentIndex = i;
+currentIndex=i
 
-    let song = songs[i];
+let song=songs[i]
 
-    audio.src = song.url;
+audio.src=song.url
 
-    audio.play();
+audio.play()
 
-    jsmediatags.read(song.url,{
+jsmediatags.read(song.url,{
 
-        onSuccess:function(tag){
+onSuccess:function(tag){
 
-            let t = tag.tags;
+let t=tag.tags
 
-            title.innerText = t.title || "Unknown Title";
-            artist.innerText = t.artist || "";
+title.innerText=t.title||"Unknown Title"
+artist.innerText=t.artist||""
 
-            let pic = t.picture;
+let pic=t.picture
 
-            if(pic){
+if(pic){
 
-                let bytes = new Uint8Array(pic.data);
+let bytes=new Uint8Array(pic.data)
 
-                let blob = new Blob([bytes], {type: pic.format});
+let blob=new Blob([bytes],{type:pic.format})
 
-                let url = URL.createObjectURL(blob);
+let url=URL.createObjectURL(blob)
 
-                artwork.style.backgroundImage = `url(${url})`;
-
-            }
-
-        }
-
-    });
+artwork.style.backgroundImage=`url(${url})`
 
 }
 
+}
+
+})
+
+}
 
 /* AUTOPLAY NEXT */
 
 audio.addEventListener("ended",()=>{
 
-    currentIndex++;
+currentIndex++
 
-    if(currentIndex >= songs.length) currentIndex = 0;
+if(currentIndex>=songs.length)currentIndex=0
 
-    playSong(currentIndex);
+playSong(currentIndex)
 
-});
-
+})
 
 /* SHUFFLE */
 
 function shuffleSong(){
 
-    let rand = Math.floor(Math.random()*songs.length);
+let rand=Math.floor(Math.random()*songs.length)
 
-    playSong(rand);
+playSong(rand)
+
+}
+
+/* AUTOSTART FIRST SONG */
+
+window.onload=()=>{
+
+playSong(0)
 
 }
 
