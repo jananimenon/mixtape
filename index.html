@@ -102,91 +102,124 @@ margin-bottom:10px;
 
 <script>
 
-const songs=[
+const songs = [
+    {url:"song1.mp3"},
+    {url:"song2.mp3"},
+    {url:"song3.mp3"}
+];
 
-{url:"Begum Akhtar - Aye mohabat tere anjam pe rona aaya.mp3"},
-{url:"Begum Akhtar - Mere Humnafas Mere Humnava.mp3"},
-{url:"Begum Akhtar - Woh Jo Ham Mein Tum Mein.mp3"},
-{url:"Begum Akhtar - Yeh Na Thi Humari Qismat.mp3"}
+let currentIndex = 0;
 
-]
+const audio = document.getElementById("audio");
+const artwork = document.getElementById("artwork");
+const title = document.getElementById("title");
+const artist = document.getElementById("artist");
+const list = document.getElementById("songlist");
 
-let currentIndex=0
-
-const audio=document.getElementById("audio")
-const artwork=document.getElementById("artwork")
-const title=document.getElementById("title")
-const artist=document.getElementById("artist")
-const list=document.getElementById("songlist")
+/* BUILD PLAYLIST USING METADATA */
 
 songs.forEach((song,i)=>{
 
-let div=document.createElement("div")
+    jsmediatags.read(song.url,{
+        onSuccess: function(tag){
 
-div.className="song"
+            const t = tag.tags;
 
-div.innerText="Track "+(i+1)
+            let songTitle = t.title || "Unknown Title";
+            let songArtist = t.artist || "";
 
-div.onclick=()=>playSong(i)
+            let div = document.createElement("div");
+            div.className="song";
 
-list.appendChild(div)
+            div.innerText = songTitle + " — " + songArtist;
 
-})
+            div.onclick = ()=> playSong(i);
+
+            list.appendChild(div);
+
+        },
+
+        onError: function(){
+
+            let div=document.createElement("div");
+
+            div.className="song";
+
+            div.innerText="Track "+(i+1);
+
+            div.onclick=()=>playSong(i);
+
+            list.appendChild(div);
+
+        }
+
+    });
+
+});
+
+
+/* PLAY SONG */
 
 function playSong(i){
 
-currentIndex=i
+    currentIndex = i;
 
-let song=songs[i]
+    let song = songs[i];
 
-audio.src=song.url
+    audio.src = song.url;
 
-audio.play()
+    audio.play();
 
-jsmediatags.read(song.url,{
+    jsmediatags.read(song.url,{
 
-onSuccess:function(tag){
+        onSuccess:function(tag){
 
-let t=tag.tags
+            let t = tag.tags;
 
-title.innerText=t.title || "Unknown"
-artist.innerText=t.artist || ""
+            title.innerText = t.title || "Unknown Title";
+            artist.innerText = t.artist || "";
 
-let pic=t.picture
+            let pic = t.picture;
 
-if(pic){
+            if(pic){
 
-let bytes=new Uint8Array(pic.data)
+                let bytes = new Uint8Array(pic.data);
 
-let blob=new Blob([bytes],{type:pic.format})
+                let blob = new Blob([bytes], {type: pic.format});
 
-let url=URL.createObjectURL(blob)
+                let url = URL.createObjectURL(blob);
 
-artwork.style.backgroundImage=`url(${url})`
+                artwork.style.backgroundImage = `url(${url})`;
+
+            }
+
+        }
+
+    });
 
 }
 
-}
 
-})
-
-}
+/* AUTOPLAY NEXT */
 
 audio.addEventListener("ended",()=>{
 
-currentIndex++
+    currentIndex++;
 
-if(currentIndex>=songs.length) currentIndex=0
+    if(currentIndex >= songs.length) currentIndex = 0;
 
-playSong(currentIndex)
+    playSong(currentIndex);
 
-})
+});
+
+
+/* SHUFFLE */
 
 function shuffleSong(){
 
-let rand=Math.floor(Math.random()*songs.length)
+    let rand = Math.floor(Math.random()*songs.length);
 
-playSong(rand)
+    playSong(rand);
 
 }
 
