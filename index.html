@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<style>
+
+body{
+margin:0;
+background:#011638;
+color:#eef0f2;
+font-family:system-ui;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+padding:40px 20px;
+}
+
+.player{
+max-width:420px;
+width:100%;
+background:#141414;
+padding:20px;
+border-radius:18px;
+}
+
+.artwork{
+width:100%;
+aspect-ratio:1/1;
+background:#011638;
+background-size:cover;
+background-position:center;
+border-radius:10px;
+margin-bottom:10px;
+}
+
+.title{
+text-align:center;
+font-size:18px;
+}
+
+.artist{
+text-align:center;
+opacity:.7;
+margin-bottom:10px;
+}
+
+audio{
+width:100%;
+margin-bottom:10px;
+}
+
+.songlist{
+max-height:200px;
+overflow-y:auto;
+}
+
+.song{
+padding:10px;
+border-bottom:1px solid rgba(255,255,255,.08);
+cursor:pointer;
+}
+
+.song:hover{
+background:#011638;
+}
+
+button{
+width:100%;
+padding:10px;
+background:#0d21a1;
+color:#eef0f2;
+border:none;
+border-radius:10px;
+margin-bottom:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="player">
+
+<div class="artwork" id="artwork"></div>
+
+<div class="title" id="title">Select a song</div>
+<div class="artist" id="artist"></div>
+
+<audio id="audio" controls></audio>
+
+<button onclick="shuffleSong()">Shuffle</button>
+
+<div class="songlist" id="songlist"></div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsmediatags/dist/jsmediatags.min.js"></script>
+
+<script>
+
+const songs=[
+
+{url:"song1.mp3"},
+{url:"song2.mp3"},
+{url:"song3.mp3"}
+
+]
+
+let currentIndex=0
+
+const audio=document.getElementById("audio")
+const artwork=document.getElementById("artwork")
+const title=document.getElementById("title")
+const artist=document.getElementById("artist")
+const list=document.getElementById("songlist")
+
+songs.forEach((song,i)=>{
+
+let div=document.createElement("div")
+
+div.className="song"
+
+div.innerText="Track "+(i+1)
+
+div.onclick=()=>playSong(i)
+
+list.appendChild(div)
+
+})
+
+function playSong(i){
+
+currentIndex=i
+
+let song=songs[i]
+
+audio.src=song.url
+
+audio.play()
+
+jsmediatags.read(song.url,{
+
+onSuccess:function(tag){
+
+let t=tag.tags
+
+title.innerText=t.title || "Unknown"
+artist.innerText=t.artist || ""
+
+let pic=t.picture
+
+if(pic){
+
+let bytes=new Uint8Array(pic.data)
+
+let blob=new Blob([bytes],{type:pic.format})
+
+let url=URL.createObjectURL(blob)
+
+artwork.style.backgroundImage=`url(${url})`
+
+}
+
+}
+
+})
+
+}
+
+audio.addEventListener("ended",()=>{
+
+currentIndex++
+
+if(currentIndex>=songs.length) currentIndex=0
+
+playSong(currentIndex)
+
+})
+
+function shuffleSong(){
+
+let rand=Math.floor(Math.random()*songs.length)
+
+playSong(rand)
+
+}
+
+</script>
+
+</body>
+</html>
