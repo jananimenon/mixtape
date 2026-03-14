@@ -52,128 +52,79 @@ animation:twinkle 3s infinite;
 /* PLAYER */
 
 .player{
-
 width:92%;
 max-width:420px;
-
 background:#141414;
-
 border-radius:20px;
-
 padding:24px;
-
 box-shadow:0 0 40px rgba(0,0,0,.6);
-
 position:relative;
-
 z-index:2;
-
 display:flex;
-
 flex-direction:column;
-
 gap:18px;
-
 }
 
 /* ARTWORK */
 
 .art{
-
 width:100%;
-
 aspect-ratio:1;
-
 background:#000;
-
 border-radius:12px;
-
 background-size:cover;
-
 background-position:center;
-
 box-shadow:0 0 25px rgba(13,33,161,.5);
-
 }
 
 /* SONG INFO */
 
 .title{
-
 font-size:18px;
-
 font-weight:600;
-
 }
 
 .artist{
-
 font-size:14px;
-
 opacity:.7;
-
 }
 
 /* CONTROLS */
 
 .controls{
-
 display:flex;
-
 justify-content:center;
-
-gap:16px;
-
+gap:10px;
 }
 
 button{
-
 background:#0d21a1;
-
 border:none;
-
-padding:10px 16px;
-
+padding:10px 14px;
 border-radius:10px;
-
 color:#eef0f2;
-
 font-size:14px;
-
 cursor:pointer;
-
 }
 
 /* PLAYLIST */
 
 .playlist{
-
-max-height:220px;
-
+max-height:200px;
 overflow-y:auto;
-
 border-top:1px solid rgba(255,255,255,.1);
-
 padding-top:10px;
-
 }
 
 .song{
-
 padding:10px;
-
 border-radius:8px;
-
 cursor:pointer;
-
 font-size:14px;
-
 }
 
 .song:hover{
-
 background:#0d21a1;
-
 }
 
 </style>
@@ -198,6 +149,12 @@ background:#0d21a1;
 
 <div class="controls">
 
+<button onclick="prevSong()">◀</button>
+
+<button onclick="togglePlay()">Play / Pause</button>
+
+<button onclick="nextSong()">▶</button>
+
 <button onclick="shuffleSong()">Shuffle</button>
 
 </div>
@@ -221,9 +178,7 @@ let star=document.createElement("div")
 star.className="star"
 
 star.style.left=Math.random()*100+"%"
-
 star.style.top=Math.random()*100+"%"
-
 star.style.animationDelay=Math.random()*3+"s"
 
 starContainer.appendChild(star)
@@ -249,46 +204,25 @@ const title=document.getElementById("title")
 const artist=document.getElementById("artist")
 const list=document.getElementById("songlist")
 
-/* LOAD PLAYLIST WITH METADATA */
+/* BUILD PLAYLIST */
 
 songs.forEach((song,i)=>{
 
-jsmediatags.read(song.url,{
-
-onSuccess:function(tag){
-
-let t=tag.tags
-
-let songTitle=t.title||("Track "+(i+1))
-let songArtist=t.artist||""
+let name=song.url
+.split("/")
+.pop()
+.replace(".mp3","")
+.replace(/%20/g," ")
 
 let div=document.createElement("div")
 
 div.className="song"
 
-div.innerText=songTitle+" — "+songArtist
+div.innerText=name
 
 div.onclick=()=>playSong(i)
 
 list.appendChild(div)
-
-},
-
-onError:function(){
-
-let div=document.createElement("div")
-
-div.className="song"
-
-div.innerText="Track "+(i+1)
-
-div.onclick=()=>playSong(i)
-
-list.appendChild(div)
-
-}
-
-})
 
 })
 
@@ -298,28 +232,35 @@ function playSong(i){
 
 currentIndex=i
 
-let song=songs[i]
-
-audio.src=song.url
+audio.src=songs[i].url
 
 audio.play()
 
-jsmediatags.read(song.url,{
+let fallback=songs[i].url
+.split("/")
+.pop()
+.replace(".mp3","")
+.replace(/%20/g," ")
+
+title.innerText=fallback
+artist.innerText=""
+
+/* TRY READING METADATA */
+
+jsmediatags.read(songs[i].url,{
 
 onSuccess:function(tag){
 
 let t=tag.tags
 
-title.innerText=t.title||"Unknown Title"
-artist.innerText=t.artist||""
+if(t.title) title.innerText=t.title
+if(t.artist) artist.innerText=t.artist
 
-let pic=t.picture
+if(t.picture){
 
-if(pic){
+let bytes=new Uint8Array(t.picture.data)
 
-let bytes=new Uint8Array(pic.data)
-
-let blob=new Blob([bytes],{type:pic.format})
+let blob=new Blob([bytes],{type:t.picture.format})
 
 let url=URL.createObjectURL(blob)
 
@@ -333,9 +274,21 @@ artwork.style.backgroundImage=`url(${url})`
 
 }
 
-/* AUTOPLAY NEXT */
+/* PLAY PAUSE */
 
-audio.addEventListener("ended",()=>{
+function togglePlay(){
+
+if(audio.paused){
+audio.play()
+}else{
+audio.pause()
+}
+
+}
+
+/* NEXT */
+
+function nextSong(){
 
 currentIndex++
 
@@ -343,7 +296,19 @@ if(currentIndex>=songs.length)currentIndex=0
 
 playSong(currentIndex)
 
-})
+}
+
+/* PREVIOUS */
+
+function prevSong(){
+
+currentIndex--
+
+if(currentIndex<0)currentIndex=songs.length-1
+
+playSong(currentIndex)
+
+}
 
 /* SHUFFLE */
 
@@ -355,7 +320,15 @@ playSong(rand)
 
 }
 
-/* AUTOSTART FIRST SONG */
+/* AUTOPLAY NEXT */
+
+audio.addEventListener("ended",()=>{
+
+nextSong()
+
+})
+
+/* AUTOSTART */
 
 window.onload=()=>{
 
